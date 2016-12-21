@@ -1,0 +1,108 @@
+//User rout for modules
+var express  = require('../node_modules/express');
+var userApp = express.Router();
+var userAccount = require( '../modules/app_modules_user.js'); // User modules
+var userProfile = require( '../modules/app_modules_profile.js'); // User modules
+var connection = require('../modules/app_modules_mysql.js');
+var mysqlQuery = require('../constance/mysql_constance');
+var tokenAuth = require('../modules/app_modules_token'); // used to create, sign, and verify tokens
+var jwt = require('../node_modules/jsonwebtoken'); // used to create, sign, and verify tokens
+var config = require('../config/config.js');
+var passHash = require('../modules/app_modules_hash');
+
+//Headers need to be added with every request, I can control the access to these requests.
+	userApp.post('/update_user', function(req, res) {
+
+	connection.query(
+		'UPDATE user_account SET user_email = ' + "'" + req.body.email + "'" + ', first_name = '+ "'" +req.body.firstName+ "'"
+		+', last_name = '+ "'" +req.body.lastName+ "'" +', date_of_birth = '+ "'" +req.body.dob+ "'" +' WHERE user_id = '+ req.body.userId + ';',
+			function(err, rows){
+				if(err) throw err;
+				console.log("YES");
+				console.log(rows);
+				connection.query(
+					'SELECT profile_id FROM user_account WHERE user_id ='+req.body.userId+';',
+					function(err, rows){
+						if(err) throw(err);
+						console.log(rows);
+						connection.query(
+							'UPDATE user_profile SET country = '+ "'" +req.body.country+ "'" +', gender = '+ "'" +req.body.gender+ "'" +' WHERE profile_id = ' +req.body.profileId+';',
+							function(err, rows){
+								if(err) throw(err);
+								console.log(rows);
+								connection.query(
+									'SELECT * FROM user_account WHERE user_id = '+req.body.userId,
+									function(err,rows){
+										if(err) throw err;
+										console.log(rows);
+										if(rows.length != 0){
+											var newUser = new userAccount(rows[0]);
+											connection.query(
+												'SELECT * FROM user_profile WHERE profile_id = '+req.body.profileId,
+												function(err,rows){
+													if(err) throw err;
+													console.log(rows);
+													if(rows.length != 0){
+														//Getting the last few infromatio peices for the user profile.
+														console.log("Profile stuff");
+														var newProfile = new userProfile(rows[0]);
+														var responce = {
+															userInfo: newUser,
+															profile: newProfile
+														};
+														res.json(responce);
+													}
+												}
+											);
+										}
+									}
+								);
+							}
+						);
+					}
+				);
+			}
+		);
+	});
+
+	userApp.post('/change_password', function(req, res){
+
+		var hashedSuccess = function(hashedPass){
+			console.log('UPDATE user_account SET password = "'+hashedPass+'" WHERE user_id = '+ req.body.userId + ';');
+			connection.query(
+				'UPDATE user_account SET password = "'+hashedPass+'" WHERE user_id = '+ req.body.userId + ';',
+				function(err,rows){
+			    if(err) throw err;
+					if(rows.length != 0){
+						res.end("Complete");
+					}
+				}
+			);
+		}
+		var passSuccess = function(confId){
+			console.log("YES");
+			console.log(confId);
+			id = confId;
+			passHash.passwordHash(req.body.newPassword, hashedSuccess);
+		}
+
+		var passErr = function(auth){
+			console.log("NO");
+			var responce = {
+				auth: auth
+			};
+			res.json(responce);
+		}
+
+			console.log(req.body);
+			connection.query(
+				'SELECT * FROM user_account WHERE user_id = '+"'"+req.body.userId+ "'",
+				function(err,rows){
+					if(err) throw err;
+					if(rows.length != 0){
+						passHash.verify(req.body.oldPassword, rows[0].password, rows[0].user_id, passSuccess, passErr);
+					}
+				}
+			);
+	});
+	module.exports = userApp;
