@@ -10,7 +10,7 @@
 		var config = require('./config/config.js'); // get our config file
 		var jwt = require('./node_modules/jsonwebtoken'); // used to create, sign, and verify tokens
 
-		var port = process.env.PORT || 8080; // used to create, sign, and verify tokens
+		var port = process.env.PORT || 443; // used to create, sign, and verify tokens
 		app.set('superSecret', config.secret);
 
     app.use(express.static(__dirname + '/public'));                 // set the static files location /public/img will be /img for users
