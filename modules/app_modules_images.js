@@ -6,16 +6,11 @@ var multer = require('../node_modules/multer');
 
 imageController.saveImage = function(req, res, callback){
 	fs.stat('uploads/test'+req.query.profileId, function(err, stat){
-		console.log("What the fuck");
 		if(err){
 			if(err.code == "EEXIST"){
-				console.log("Exsist :"+ err.code);
-				console.log("dir didnt need to be made");
-				console.log("First upload called");
 				//cb(null, 'uploads/test'+req.query.profileId);
 			}else{
 				fs.mkdir('uploads/test'+req.query.profileId, function(err) {
-					console.log("Making dir");
 					if(err) {
 						console.log('Error in folder creation'+ err);
 					}else{
@@ -25,25 +20,20 @@ imageController.saveImage = function(req, res, callback){
 			};
 		}
 		upload(req,res,function(err){
-			console.log("Checking files");
 				if(err){
-					console.log(err);
 					res.json({error_code:1,err_desc:err});
 					return;
 				}else{
-					console.log(req.files);
 					callback(req.files);
 				}
 			})
 	});
 	var storage = multer.diskStorage({ //multers disk storage settings
 		destination: function (req, file, cb) {
-			console.log("Is this called?");
 			cb(null, 'uploads/test'+req.query.profileId);
 		},
 		filename: function (req, file, cb) {
 			var datetimestamp = Date.now();
-			console.log(datetimestamp);
 			cb(null, file.fieldname + datetimestamp + '.' + file.originalname.split('.')[file.originalname.split('.').length -1]);
 		}
 	});
@@ -59,7 +49,6 @@ imageController.getImage = function(imagePaths, imageSuccess){
 			"pictureId": imagePaths[i].picture_id
 		});
 	}
-	console.log(images);
 	imageSuccess(images);
 }
 

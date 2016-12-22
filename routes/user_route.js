@@ -18,33 +18,26 @@ var passHash = require('../modules/app_modules_hash');
 		+', last_name = '+ "'" +req.body.lastName+ "'" +', date_of_birth = '+ "'" +req.body.dob+ "'" +' WHERE user_id = '+ req.body.userId + ';',
 			function(err, rows){
 				if(err) throw err;
-				console.log("YES");
-				console.log(rows);
 				connection.query(
 					'SELECT profile_id FROM user_account WHERE user_id ='+req.body.userId+';',
 					function(err, rows){
 						if(err) throw(err);
-						console.log(rows);
 						connection.query(
 							'UPDATE user_profile SET country = '+ "'" +req.body.country+ "'" +', gender = '+ "'" +req.body.gender+ "'" +' WHERE profile_id = ' +req.body.profileId+';',
 							function(err, rows){
 								if(err) throw(err);
-								console.log(rows);
 								connection.query(
 									'SELECT * FROM user_account WHERE user_id = '+req.body.userId,
 									function(err,rows){
 										if(err) throw err;
-										console.log(rows);
 										if(rows.length != 0){
 											var newUser = new userAccount(rows[0]);
 											connection.query(
 												'SELECT * FROM user_profile WHERE profile_id = '+req.body.profileId,
 												function(err,rows){
 													if(err) throw err;
-													console.log(rows);
 													if(rows.length != 0){
 														//Getting the last few infromatio peices for the user profile.
-														console.log("Profile stuff");
 														var newProfile = new userProfile(rows[0]);
 														var responce = {
 															userInfo: newUser,
@@ -68,7 +61,6 @@ var passHash = require('../modules/app_modules_hash');
 	userApp.post('/change_password', function(req, res){
 
 		var hashedSuccess = function(hashedPass){
-			console.log('UPDATE user_account SET password = "'+hashedPass+'" WHERE user_id = '+ req.body.userId + ';');
 			connection.query(
 				'UPDATE user_account SET password = "'+hashedPass+'" WHERE user_id = '+ req.body.userId + ';',
 				function(err,rows){
@@ -80,21 +72,17 @@ var passHash = require('../modules/app_modules_hash');
 			);
 		}
 		var passSuccess = function(confId){
-			console.log("YES");
-			console.log(confId);
 			id = confId;
 			passHash.passwordHash(req.body.newPassword, hashedSuccess);
 		}
 
 		var passErr = function(auth){
-			console.log("NO");
 			var responce = {
 				auth: auth
 			};
 			res.json(responce);
 		}
 
-			console.log(req.body);
 			connection.query(
 				'SELECT * FROM user_account WHERE user_id = '+"'"+req.body.userId+ "'",
 				function(err,rows){

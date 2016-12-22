@@ -12,8 +12,8 @@
 		var config = require('./config/config.js'); // get our config file
 		var jwt = require('./node_modules/jsonwebtoken'); // used to create, sign, and verify tokens
 
-		var key = fs.readFileSync('./cert/private.pem');
-		var cert = fs.readFileSync('./cert/public.pem');
+		var key = fs.readFileSync('./cert/plannectme.com.key');
+		var cert = fs.readFileSync('./cert/plannectme.com.csr');
 		// var ca = fs.readFileSync(path.resolve(__dirname, '../cert/cai.pem'));
 
 		var port = process.env.PORT || 8080; // used to create, sign, and verify tokens
