@@ -2,6 +2,7 @@
 
     // set up ========================
 		var https = require('https');
+		var fs = require('fs');
 		var express  = require('./node_modules/express');
     var app      = express();                               // create our app w/ express
     var morgan = require('./node_modules/morgan');             // log requests to the console (express4)
