@@ -1,6 +1,7 @@
 // server.js
 
     // set up ========================
+		var https = require('https');
 		var express  = require('./node_modules/express');
     var app      = express();                               // create our app w/ express
     var morgan = require('./node_modules/morgan');             // log requests to the console (express4)
@@ -10,7 +11,11 @@
 		var config = require('./config/config.js'); // get our config file
 		var jwt = require('./node_modules/jsonwebtoken'); // used to create, sign, and verify tokens
 
-		var port = process.env.PORT || 8080; // used to create, sign, and verify tokens
+		var key = fs.readFileSync('./cert/private.pem');
+		var cert = fs.readFileSync('./cert/public.pem');
+		// var ca = fs.readFileSync(path.resolve(__dirname, '../cert/cai.pem'));
+
+		var port = process.env.PORT || 443; // used to create, sign, and verify tokens
 		app.set('superSecret', config.secret);
 
     app.use(express.static(__dirname + '/public'));                 // set the static files location /public/img will be /img for users
@@ -54,5 +59,9 @@
 		app.use('/api/profiles', profile_route);
 
 		// listen (start app with node server) ======================================
-		app.listen(port);
+		https.createServer({
+			key: key,
+			cert: cert
+		}, app).listen(port);
+		//app.listen(port);
 		console.log("App listening on port" + port);
