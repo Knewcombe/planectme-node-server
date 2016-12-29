@@ -28,7 +28,8 @@
 
 		app.use(function(req, res, next){
 			// Website you wish to allow to connect
-	    res.header('Access-Control-Allow-Origin', 'https://planectme-33bda.firebaseapp.com/*');
+	    res.header('Access-Control-Allow-Origin', '*');
+			//https://planectme-33bda.firebaseapp.com/*
 
 	    // Request methods you wish to allow
 	    res.header('Access-Control-Allow-Methods', 'GET, POST');
@@ -60,9 +61,9 @@
 		app.use('/api/profiles', profile_route);
 
 		// listen (start app with node server) ======================================
-		https.createServer({
-			key: key,
-			cert: cert
-		}, app).listen(port);
-		//app.listen(port);
+		// https.createServer({
+		// 	key: key,
+		// 	cert: cert
+		// }, app).listen(port);
+		app.listen(port);
 		console.log("App listening on port" + port);
