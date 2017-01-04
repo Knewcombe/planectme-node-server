@@ -12,8 +12,8 @@
 		var config = require('./config/config.js'); // get our config file
 		var jwt = require('./node_modules/jsonwebtoken'); // used to create, sign, and verify tokens
 
-		var key = fs.readFileSync('./cert/plannectme.com.key');
-		var cert = fs.readFileSync('./cert/plannectme.com.csr');
+		var key = fs.readFileSync('./cert/private.key.pem');
+		var cert = fs.readFileSync('./cert/planectme.pem');
 		// var ca = fs.readFileSync(path.resolve(__dirname, '../cert/cai.pem'));
 
 		var port = process.env.PORT || 8080; // used to create, sign, and verify tokens
@@ -61,9 +61,9 @@
 		app.use('/api/profiles', profile_route);
 
 		// listen (start app with node server) ======================================
-		// https.createServer({
-		// 	key: key,
-		// 	cert: cert
-		// }, app).listen(port);
-		app.listen(port);
+		https.createServer({
+			key: key,
+			cert: cert
+		}, app).listen(port);
+		// app.listen(port);
 		console.log("App listening on port" + port);
