@@ -16,7 +16,7 @@
 		var cert = fs.readFileSync('./cert/planectme.pem');
 		// var ca = fs.readFileSync(path.resolve(__dirname, '../cert/cai.pem'));
 
-		var port = process.env.PORT || 8080; // used to create, sign, and verify tokens
+		var port = process.env.PORT || 80; // used to create, sign, and verify tokens
 		app.set('superSecret', config.secret);
 
     app.use(express.static(__dirname + '/public'));                 // set the static files location /public/img will be /img for users
