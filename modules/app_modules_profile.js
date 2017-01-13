@@ -3,5 +3,8 @@ var schemaObject = require('../node_modules/node-schema-object');       	// sche
 module.exports = new schemaObject({
 	profile_id: String,
 	gender: String,
-	country: String
+	country: String,
+	allow_rating: Number,
+	visable_rating: Number,
+	hidden: Number
 });

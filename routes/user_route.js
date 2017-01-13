@@ -13,45 +13,89 @@ var passHash = require('../modules/app_modules_hash');
 //Headers need to be added with every request, I can control the access to these requests.
 	userApp.post('/update_user', function(req, res) {
 
-	connection.query(
-		'UPDATE user_account SET user_email = ' + "'" + req.body.email + "'" + ', first_name = '+ "'" +req.body.firstName+ "'"
-		+', last_name = '+ "'" +req.body.lastName+ "'" +', date_of_birth = '+ "'" +req.body.dob+ "'" +' WHERE user_id = '+ req.body.userId + ';',
-			function(err, rows){
-				if(err) throw err;
-				connection.query(
-					'SELECT profile_id FROM user_account WHERE user_id ='+req.body.userId+';',
+		var completeUpdate = function(){
+			connection.query(
+				'UPDATE user_account SET user_email = ' + "'" + req.body.email + "'" + ', first_name = '+ "'" +req.body.firstName+ "'"
+				+', last_name = '+ "'" +req.body.lastName+ "'" +', date_of_birth = '+ "'" +req.body.dob+ "'" +' WHERE user_id = '+ req.body.userId + ';',
 					function(err, rows){
-						if(err) throw(err);
+						if(err) throw err;
 						connection.query(
-							'UPDATE user_profile SET country = '+ "'" +req.body.country+ "'" +', gender = '+ "'" +req.body.gender+ "'" +' WHERE profile_id = ' +req.body.profileId+';',
+							'SELECT profile_id FROM user_account WHERE user_id ='+req.body.userId+';',
 							function(err, rows){
 								if(err) throw(err);
 								connection.query(
-									'SELECT * FROM user_account WHERE user_id = '+req.body.userId,
-									function(err,rows){
-										if(err) throw err;
-										if(rows.length != 0){
-											var newUser = new userAccount(rows[0]);
-											connection.query(
-												'SELECT * FROM user_profile WHERE profile_id = '+req.body.profileId,
-												function(err,rows){
-													if(err) throw err;
-													if(rows.length != 0){
-														//Getting the last few infromatio peices for the user profile.
-														var newProfile = new userProfile(rows[0]);
-														var responce = {
-															userInfo: newUser,
-															profile: newProfile
-														};
-														res.json(responce);
-													}
+									'UPDATE user_profile SET country = '+ "'" +req.body.country+ "'" +', gender = '+ "'" +req.body.gender+ "'" +', allow_rating = '+ "'" +req.body.options.rating+ "'" +
+									', visable_rating = '+ "'" +req.body.options.visiableRate + "'" +', hidden = '+ "'" +req.body.options.hidden+ "'" +' WHERE profile_id = ' +req.body.profileId+';',
+									function(err, rows){
+										if(err) throw(err);
+										connection.query(
+											'SELECT * FROM user_account WHERE user_id = '+req.body.userId,
+											function(err,rows){
+												if(err) throw err;
+												if(rows.length != 0){
+													var newUser = new userAccount(rows[0]);
+													connection.query(
+														'SELECT * FROM user_profile WHERE profile_id = '+req.body.profileId,
+														function(err,rows){
+															if(err) throw err;
+															if(rows.length != 0){
+																//Getting the last few infromatio peices for the user profile.
+																var newProfile = new userProfile(rows[0]);
+																var responce = {
+																	userInfo: newUser,
+																	profile: newProfile
+																};
+																res.json(responce);
+															}
+														}
+													);
 												}
-											);
-										}
+											}
+										);
 									}
 								);
 							}
 						);
+					}
+				);
+		}
+		//Checking if email is beign used by another user.
+		connection.query(
+			'SELECT * FROM user_account WHERE user_email = '+"'"+req.body.email+"'",
+			function(err, rows){
+				if(err) throw err;
+				if(rows.length != 0){
+					if(rows[0].profile_id == req.body.profileId){
+						completeUpdate();
+					}else{
+							res.send("Email is already in use.");
+					}
+				}else{
+					completeUpdate();
+				}
+			}
+		);
+	});
+
+	userApp.post('/update_options', function(req, res){
+		console.log(req.body);
+		connection.query(
+			'UPDATE user_profile SET allow_rating = '+ "'" +req.body.options.rating+ "'" + ', visable_rating = '+
+			"'" +req.body.options.visiableRate + "'" +', hidden = '+ "'" +req.body.options.hidden+ "'" +' WHERE profile_id = ' +req.body.profileId+';',
+			function(err, rows){
+				if(err) throw(err);
+				connection.query(
+					'SELECT * FROM user_profile WHERE profile_id = '+req.body.profileId,
+					function(err,rows){
+						if(err) throw err;
+						if(rows.length != 0){
+							//Getting the last few infromatio peices for the user profile.
+							var newProfile = new userProfile(rows[0]);
+							var responce = {
+								profile: newProfile
+							};
+							res.json(responce);
+						}
 					}
 				);
 			}

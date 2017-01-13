@@ -81,10 +81,10 @@ authApp.post('/sign_up', function(req, res, next){
 		}
 	);
 }, function(req, res){
-	//Create the profile.
+	console.log(req.body);
 	var hashedSuccess = function(hashedPass){
 		connection.query(
-			'INSERT INTO user_profile (country, gender) VALUES (' + "'" + req.body.country + "', '" + req.body.gender + "')",
+			'INSERT INTO user_profile (country, gender, allow_rating, visable_rating, hidden) VALUES (' + "'" + req.body.country + "', '" + req.body.gender + "', '" + req.body.options.rating + "', '" + req.body.options.visiableRate + "', '" + req.body.options.hidden +"')",
 				function(err, rows){
 					if(err) throw err;
 					connection.query(

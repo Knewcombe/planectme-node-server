@@ -1,5 +1,6 @@
 var express  = require('../node_modules/express');
 var profileApp = express.Router();
+var async = require('../node_modules/async');
 var userProfile = require( '../modules/app_modules_profile.js'); // User modules
 var connection = require('../modules/app_modules_mysql.js');
 var mysqlQuery = require('../constance/mysql_constance');
@@ -9,25 +10,74 @@ var config = require('../config/config.js');
 var passHash = require('../modules/app_modules_hash');
 var imageUpload = require('../modules/app_modules_images.js');
 
-
 profileApp.post('/getProfiles', function(req, res){
-	var exception = req.body;
-	var query = 'SELECT * FROM user_profile WHERE profile_id NOT IN (';
-	for(var i = 0; i < exception.length; i++){
-		query += exception[i].profileId;
-		if(i != (exception.length - 1)){
+
+	var profileids = req.body.profileId;
+	var profiles = [];
+	var query = 'SELECT * FROM user_profile WHERE ';
+
+	if(req.body.searchOptions.country != ''){
+		query += 'country = '+"'"+req.body.searchOptions.country+"'"+' AND ';
+	}else{
+		query += 'country IS NOT NULL AND ';
+	}
+	if(req.body.searchOptions.gender != ''){
+		query += 'gender = '+"'"+req.body.searchOptions.gender+"'"+' AND ';
+	}else{
+		query += 'gender IS NOT NULL AND ';
+	}
+	query += 'profile_id NOT IN (';
+	for(var i = 0; i < profileids.length; i++){
+		query += profileids[i];
+		if(i != (profileids.length - 1)){
 			query += ', ';
 		}else{
-			query +=  ') ORDER BY RAND() LIMIT 10';
+			query +=  ') ORDER BY RAND()';
 		}
 	}
+	console.log(query)
 	connection.query(
 		query,
 		function(err,rows){
 			if(err) throw err;
 			if(rows.length != 0){
-				//Getting the last few infromatio peices for the user profile.
-				res.json(rows);
+				var progress = (rows.length-1);
+				async.forEachOf(rows, function(value, key){
+					connection.query(
+						'SELECT date_of_birth FROM user_account WHERE profile_id = '+value.profile_id,
+						function(err,dateRows){
+							if(err) throw err;
+							if(dateRows.length != 0){
+								var today = new Date();
+							  var birthDate = new Date(dateRows[0].date_of_birth);
+							  var age = today.getFullYear() - birthDate.getFullYear();
+							  var m = today.getMonth() - birthDate.getMonth();
+							  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())){
+									age--;
+								}
+								if(age){
+									if(age >= req.body.searchOptions.age.min && age <= req.body.searchOptions.age.max){
+										if(req.body.requestCountry == value.country){
+											if(value.hidden){
+												profiles.push(value);
+											}
+										}else{
+											profiles.push(value);
+										}
+									}
+								}
+								if(key == progress){
+									res.json(profiles);
+								}
+							}else{
+								res.end();
+							}
+						});
+				}, function(err){
+					if(err){
+						console.log(err);
+					}
+				});
 			}else{
 				res.end();
 			}

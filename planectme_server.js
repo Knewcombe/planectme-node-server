@@ -27,6 +27,8 @@
     app.use(methodOverride());
 
 		app.use(function(req, res, next){
+
+			//planectme-33bda.firebaseapp.com - https://www.plannect.me
 			// Website you wish to allow to connect
 	    res.header('Access-Control-Allow-Origin', '*');
 			//https://planectme-33bda.firebaseapp.com/*
