@@ -310,14 +310,22 @@ profileApp.post('/get_all_ratings', function(req, res){
 });
 
 profileApp.post('/get_profile_data', function(req, res){
+	var responce = [];
 	connection.query(
 		'SELECT * FROM user_profile WHERE profile_id = '+req.body.profileId,
 		function(err,rows){
 			if(err) throw err;
-			console.log(rows.length);
+			console.log(rows);
 			if(rows.length != 0){
-				console.log(rows);
-				res.send(rows);
+				if(rows[0].country === req.body.requestCountry){
+					if(!rows[0].hidden){
+						res.send(rows);
+					}else{
+						res.send(false);
+					}
+				}else{
+					res.send(rows);
+				}
 			}else{
 				res.send(false);
 			}

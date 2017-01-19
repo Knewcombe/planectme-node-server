@@ -16,7 +16,7 @@ var passHash = require('../modules/app_modules_hash');
 		var completeUpdate = function(){
 			connection.query(
 				'UPDATE user_account SET user_email = ' + "'" + req.body.email + "'" + ', first_name = '+ "'" +req.body.firstName+ "'"
-				+', last_name = '+ "'" +req.body.lastName+ "'" +', date_of_birth = '+ "'" +req.body.dob+ "'" +' WHERE user_id = '+ req.body.userId + ';',
+				+', last_name = '+ "'" +req.body.lastName+ "'" +',  WHERE user_id = '+ req.body.userId + ';',
 					function(err, rows){
 						if(err) throw err;
 						connection.query(

@@ -47,10 +47,11 @@ authApp.post('/authenticate', function(req, res) {
 	var passErr = function(message){
 		res.send(false);
 	}
-
+	console.log(req.body.email);
 	connection.query(
 		'SELECT * FROM user_account WHERE user_email = '+"'"+req.body.email + "'",
 		function(err,rows){
+			console.log(rows);
 			if(err) throw err;
 			if(rows.length != 0){
 				passHash.verify(req.body.password, rows[0].password, rows[0].user_id, passSuccess, passErr);
