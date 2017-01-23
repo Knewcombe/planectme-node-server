@@ -14,6 +14,7 @@
 
 		var key = fs.readFileSync('./cert/private.key.pem');
 		var cert = fs.readFileSync('./cert/planectme.pem');
+		var ca = fs.readFileSync('./cert/plannectme-bundle.ca-bundle');
 		// var ca = fs.readFileSync(path.resolve(__dirname, '../cert/cai.pem'));
 
 		var port = process.env.PORT || 8080; // used to create, sign, and verify tokens
@@ -64,6 +65,7 @@
 
 		// listen (start app with node server) ======================================
 		https.createServer({
+			ca: ca,
 			key: key,
 			cert: cert
 		}, app).listen(port);
