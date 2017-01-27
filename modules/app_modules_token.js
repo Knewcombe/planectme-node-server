@@ -1,18 +1,22 @@
 var express  = require('../node_modules/express');
 var tokenAuth = express.Router();
 var config = require('../config/config.js');
-var jwt = require('../node_modules/jsonwebtoken'); // used to create, sign, and verify tokens
+var jwt = require('../node_modules/jsonwebtoken-refresh'); // used to create, sign, and verify tokens
 
 tokenAuth.createToken = function(success, user, profile){
 	var token = jwt.sign(user, config.secret, {
-		expiresIn: 60*24// expires in 24 hours
+		expiresIn: '24h'// expires in 1 week
 	});
 	// return the information including token as JSON
 	var responce = {
-		token: token,
+		tokenInfo: {
+			token: token,
+			tokenRefresh: false
+		},
 		userInfo: user,
 		profile: profile
 	};
+
 	success(responce);
 }
 

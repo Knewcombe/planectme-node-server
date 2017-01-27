@@ -102,4 +102,55 @@ authApp.post('/sign_up', function(req, res, next){
 	passHash.passwordHash(req.body.password, hashedSuccess);
 });
 
+authApp.post('/email_check', function(req, res, next){
+	connection.query(
+		'SELECT user_email FROM user_account WHERE user_email = '+"'"+req.body.email+ "'",
+		function(err,rows){
+			if(err) throw err;
+			//If the db returns something to the user, a user is already using the given email.
+			if(rows.length != 0){
+				res.send(false);
+			}else{
+				res.send(true);
+			}
+		}
+	);
+});
+
+authApp.post('/questions_add', function(req, res, next){
+	console.log(req.body.user_id);
+	console.log(req.body.questions);
+		connection.query(
+			'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.first.question+ "', '" +req.body.questions.first.answer+ "')",
+			function(err,rows){
+				if(err) throw err;
+				//If the db returns something to the user, a user is already using the given email.
+				if(rows.length != 0){
+					if(err) throw(err);
+					connection.query(
+						'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.second.question+ "', '" +req.body.questions.second.answer+ "')",
+						function(err,rows){
+							if(err) throw err;
+							//If the db returns something to the user, a user is already using the given email.
+							if(rows.length != 0){
+								if(err) throw(err);
+								connection.query(
+									'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.third.question+ "', '" +req.body.questions.third.answer+ "')",
+									function(err,rows){
+										if(err) throw err;
+										//If the db returns something to the user, a user is already using the given email.
+										if(rows.length != 0){
+											if(err) throw(err);
+											res.end();
+										}
+									}
+								);
+							}
+						}
+					);
+				}
+			}
+		);
+});
+
 module.exports = authApp;

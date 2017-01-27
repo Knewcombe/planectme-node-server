@@ -53,7 +53,7 @@
 		// basic route
 		var user_route = require('./routes/user_route.js'); //User routes
 		var extra_route = require('./routes/extra_route.js'); //extra routes
-		var auth_route = require('./routes/auth_route.js'); //extra routes
+		var auth_route = require('./routes/auth_route.js'); //auth routes
 		var profile_route = require('./routes/profile_route.js');
 		var validate_route = require('./routes/validate_route.js');
 
@@ -64,10 +64,10 @@
 		app.use('/api/profiles', profile_route);
 
 		// listen (start app with node server) ======================================
-		https.createServer({
-			ca: ca,
-			key: key,
-			cert: cert
-		}, app).listen(port);
-		// app.listen(port);
+		// https.createServer({
+		// 	ca: ca,
+		// 	key: key,
+		// 	cert: cert
+		// }, app).listen(port);
+		app.listen(port);
 		console.log("App listening on port" + port);

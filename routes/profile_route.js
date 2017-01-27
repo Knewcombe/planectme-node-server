@@ -11,9 +11,12 @@ var passHash = require('../modules/app_modules_hash');
 var imageUpload = require('../modules/app_modules_images.js');
 
 profileApp.post('/getProfiles', function(req, res){
-
 	var profileids = req.body.profileId;
 	var profiles = [];
+	var responce = [{
+		token: req.newToken
+	}];
+	console.log("____CALLLED");
 	var query = 'SELECT * FROM user_profile WHERE ';
 
 	if(req.body.searchOptions.country != ''){
@@ -35,7 +38,6 @@ profileApp.post('/getProfiles', function(req, res){
 			query +=  ') ORDER BY RAND()';
 		}
 	}
-	console.log(query)
 	connection.query(
 		query,
 		function(err,rows){
@@ -67,10 +69,14 @@ profileApp.post('/getProfiles', function(req, res){
 									}
 								}
 								if(key == progress){
-									res.json(profiles);
+									console.log("Send 1");
+									responce.push({data: profiles})
+									res.send(responce);
 								}
 							}else{
-								res.end();
+								console.log("Send 2");
+								responce.push({data: null})
+								res.send(responce);
 							}
 						});
 				}, function(err){
@@ -79,13 +85,18 @@ profileApp.post('/getProfiles', function(req, res){
 					}
 				});
 			}else{
-				res.end();
+				console.log("Send 3");
+				responce.push({data: null})
+				res.send(responce)
 			}
 		}
 	);
 });
 
 profileApp.post('/upload', function(req, res){
+	var responce = [{
+		token: req.newToken
+	}];
 	var insertPath = function(images){
 		for (var i = 0, len = images.length; i < len; i++){
 			connection.query(
@@ -97,12 +108,18 @@ profileApp.post('/upload', function(req, res){
 				}
 			);
 		};
-		res.json({error_code:0,err_desc:'done'});
+		responce.push({data: {error_code:0,err_desc:'done'}});
+		res.send(responce);
 	};
 	imageUpload.saveImage(req, res, insertPath);
 });
 
 profileApp.post('/download', function(req, res){
+
+	var responce = [{
+		token: req.newToken
+	}];
+
 	var imageArray = [];
 	var imageSuccess = function(images){
 		for (var i = 0, len = images.length; i < len; i++){
@@ -111,8 +128,10 @@ profileApp.post('/download', function(req, res){
 				"pictureId": images[i].pictureId
 			});
 		};
-		res.json(imageArray);
-		res.end();
+		responce.push({
+			data: imageArray
+			})
+		res.send(responce);
 	}
 
 	connection.query(
@@ -123,7 +142,7 @@ profileApp.post('/download', function(req, res){
 				//Getting the last few infromatio peices for the user profile.
 				imageUpload.getImage(rows, imageSuccess);
 			}else{
-				res.end();
+				res.send(responce);
 			}
 		}
 	);
@@ -131,6 +150,9 @@ profileApp.post('/download', function(req, res){
 
 profileApp.post('/update_images', function(req, res){
 	var imageArray = [];
+	var responce = [{
+		token: req.newToken
+	}];
 	var imageSuccess = function(images){
 		for (var i = 0, len = images.length; i < len; i++){
 			imageArray.push({
@@ -138,8 +160,10 @@ profileApp.post('/update_images', function(req, res){
 				"pictureId": images[i].pictureId
 			});
 		};
-		res.json(imageArray);
-		res.end();
+		responce.push({
+			data: imageArray
+		})
+		res.send(responce);
 	}
 
 	var insertPath = function(images){
@@ -154,11 +178,11 @@ profileApp.post('/update_images', function(req, res){
 							'INSERT INTO profile_pic (profile_id, image_location, default_picture) VALUES ('+"'"+req.query.profileId+"', '"+path+"', '0')",
 							function(err,rows){
 								if(err) throw err;
-								res.end();
+								res.send(responce);
 								}
 							);
 						}else{
-							res.end();
+							res.send(responce);
 						}
 					}
 				);
@@ -183,55 +207,81 @@ profileApp.post('/update_images', function(req, res){
 });
 
 profileApp.post('/favourite_profile', function(req, res){
+	var responce = [{
+		token: req.newToken
+	}];
 	connection.query(
 		'INSERT INTO favourite_profile (profile_id, fav_profile_id) VALUES ('+"'"+req.body.profileId+"', '"+req.body.favProfile+"')",
 		function(err,rows){
 			if(err) throw err;
-				res.end();
+				res.send(responce);
 			}
 		);
 });
 
 profileApp.post('/favourite_find', function(req, res){
+	var responce = [{
+		token: req.newToken
+	}];
 	connection.query(
 		'SELECT * FROM favourite_profile WHERE profile_id = '+req.body.profileId+' AND fav_profile_id = '+req.body.favProfile,
 		function(err,rows){
 			if(err) throw err;
 			if(rows.length != 0){
-				res.send(true);
+				responce.push({
+					data: true
+					})
 			}else{
-				res.send(false);
+				responce.push({
+					data: false
+				})
 			}
+			res.send(responce);
 		}
 	);
 });
 
 profileApp.post('/favourite_find_all', function(req, res){
+	var responce = [{
+		token: req.newToken
+	}];
 	connection.query(
 		'SELECT * FROM favourite_profile WHERE profile_id = '+req.body.profileId,
 		function(err,rows){
 			if(err) throw err;
+			console.log(rows);
 			if(rows.length != 0){
-				res.json(rows);
+				responce.push({
+					data: rows
+				})
 			}else{
-				res.send(false);
+				responce.push({
+					data: false
+				})
 			}
+			res.send(responce);
 		}
 	);
 });
 
 profileApp.post('/favourite_remove', function(req, res){
+	var responce = [{
+		token: req.newToken
+	}];
 	connection.query(
 		'DELETE FROM favourite_profile WHERE  profile_id ='+req.body.profileId+" AND fav_profile_id = "+req.body.favProfile,
 		function(err,rows){
 			if(err) throw err;
-				res.end();
+				res.send(responce);
 			}
 		);
 });
 
 profileApp.post('/rate_profile', function(req, res){
 	//See if the profile has already been rated by the current user.
+	var responce = [{
+		token: req.newToken
+	}];
 	connection.query(
 		'SELECT * FROM profile_rating WHERE profile_id = '+req.body.profileId + " AND rate_profile_id = "+ req.body.rateProfileId,
 		function(err,rows){
@@ -244,7 +294,7 @@ profileApp.post('/rate_profile', function(req, res){
 						if(err) throw err;
 						if(rows.length != 0){
 							//If there is any amount of rows, they need to be updated.
-							res.end();
+							res.send(responce);
 						}
 					}
 				);
@@ -254,7 +304,7 @@ profileApp.post('/rate_profile', function(req, res){
 					'INSERT INTO profile_rating (profile_id, rate_profile_id, rate_amount) VALUES ('+"'"+req.body.profileId+"', '"+req.body.rateProfileId+"','"+req.body.value+"')",
 					function(err,rows){
 						if(err) throw err;
-						res.end();
+						res.send(responce);
 						}
 					);
 			}
@@ -263,20 +313,31 @@ profileApp.post('/rate_profile', function(req, res){
 });
 
 profileApp.post('/profile_rating', function(req, res){
+	var responce = [{
+		token: req.newToken
+	}];
 	connection.query(
 		'SELECT * FROM profile_rating WHERE profile_id = '+req.body.profileId + " AND rate_profile_id = "+ req.body.rateProfileId,
 		function(err,rows){
 			if(err) throw err;
 			if(rows.length != 0){
-				res.json(rows);
+				responce.push({
+					data: rows
+					})
 			}else{
-				res.send("0");
+				responce.push({
+					data: '0'
+					})
 			}
+			res.send(responce);
 		}
 	);
 });
 
 profileApp.post('/profile_average', function(req, res){
+	var responce = [{
+		token: req.newToken
+	}];
 	var sum = 0;
 	connection.query(
 		'SELECT * FROM profile_rating WHERE rate_profile_id = '+req.body.profileId,
@@ -287,30 +348,46 @@ profileApp.post('/profile_average', function(req, res){
 					sum += rows[i].rate_amount;
 				}
 				var arverage = sum/rows.length;
-				res.send("'"+arverage+"'");
+				responce.push({
+					data: arverage
+					})
 			}else{
-				res.send("0");
+				responce.push({
+					data: '0'
+					})
 			}
+			res.send(responce);
 		}
 	);
 });
 
 profileApp.post('/get_all_ratings', function(req, res){
+	var responce = [{
+		token: req.newToken
+	}];
 	connection.query(
 		'SELECT * FROM profile_rating WHERE rate_profile_id = '+req.body.profileId,
 		function(err,rows){
 			if(err) throw err;
 			if(rows.length != 0){
-				res.send(rows);
+				responce.push({
+					data: rows
+					})
 			}else{
-				res.send(false);
+				responce.push({
+					data: false
+					})
 			}
+			res.send(responce)
 		}
 	);
 });
 
 profileApp.post('/get_profile_data', function(req, res){
-	var responce = [];
+	var responce = [{
+		token: req.newToken
+	}];
+	console.log(req.body.profileId)
 	connection.query(
 		'SELECT * FROM user_profile WHERE profile_id = '+req.body.profileId,
 		function(err,rows){
@@ -318,31 +395,48 @@ profileApp.post('/get_profile_data', function(req, res){
 			console.log(rows);
 			if(rows.length != 0){
 				if(rows[0].country === req.body.requestCountry){
-					if(!rows[0].hidden){
-						res.send(rows);
+					if(rows[0].hidden){
+						responce.push({
+							data: rows
+							})
 					}else{
-						res.send(false);
+						responce.push({
+							data: false
+							})
 					}
 				}else{
-					res.send(rows);
+					responce.push({
+						data: rows
+						})
 				}
 			}else{
-				res.send(false);
+				responce.push({
+					data: false
+					})
 			}
+			res.send(responce)
 		}
 	);
 })
 
 profileApp.post('/get_favouite_amount', function(req, res){
+	var responce = [{
+		token: req.newToken
+	}];
 	connection.query(
 		'SELECT * FROM favourite_profile WHERE fav_profile_id = '+req.body.profileId,
 		function(err,rows){
 			if(err) throw err;
 			if(rows.length != 0){
-				res.json(rows.length);
+				responce.push({
+					data: rows.length
+					})
 			}else{
-				res.send("0");
+				responce.push({
+					data: '0'
+					})
 			}
+			res.send(responce)
 		}
 	);
 })

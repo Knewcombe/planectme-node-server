@@ -13,10 +13,14 @@ var passHash = require('../modules/app_modules_hash');
 //Headers need to be added with every request, I can control the access to these requests.
 	userApp.post('/update_user', function(req, res) {
 
+		var responce = [{
+			token: req.newToken
+		}];
+
 		var completeUpdate = function(){
 			connection.query(
 				'UPDATE user_account SET user_email = ' + "'" + req.body.email + "'" + ', first_name = '+ "'" +req.body.firstName+ "'"
-				+', last_name = '+ "'" +req.body.lastName+ "'" +',  WHERE user_id = '+ req.body.userId + ';',
+				+', last_name = '+ "'" +req.body.lastName+ "'" +'  WHERE user_id = '+ req.body.userId + ';',
 					function(err, rows){
 						if(err) throw err;
 						connection.query(
@@ -41,10 +45,11 @@ var passHash = require('../modules/app_modules_hash');
 															if(rows.length != 0){
 																//Getting the last few infromatio peices for the user profile.
 																var newProfile = new userProfile(rows[0]);
-																var responce = {
-																	userInfo: newUser,
-																	profile: newProfile
-																};
+																responce.push({data:{
+																		userInfo: newUser,
+																		profile: newProfile
+																	}
+																});
 																res.json(responce);
 															}
 														}
@@ -78,7 +83,10 @@ var passHash = require('../modules/app_modules_hash');
 	});
 
 	userApp.post('/update_options', function(req, res){
-		console.log(req.body);
+		var responce = [{
+			token: req.newToken
+		}];
+
 		connection.query(
 			'UPDATE user_profile SET allow_rating = '+ "'" +req.body.options.rating+ "'" + ', visable_rating = '+
 			"'" +req.body.options.visiableRate + "'" +', hidden = '+ "'" +req.body.options.hidden+ "'" +' WHERE profile_id = ' +req.body.profileId+';',
@@ -91,9 +99,10 @@ var passHash = require('../modules/app_modules_hash');
 						if(rows.length != 0){
 							//Getting the last few infromatio peices for the user profile.
 							var newProfile = new userProfile(rows[0]);
-							var responce = {
+							responce.push({data:{
 								profile: newProfile
-							};
+								}
+							});
 							res.json(responce);
 						}
 					}
@@ -104,13 +113,18 @@ var passHash = require('../modules/app_modules_hash');
 
 	userApp.post('/change_password', function(req, res){
 
+		responce = [{
+			token: req.newToken
+		}];
+
 		var hashedSuccess = function(hashedPass){
 			connection.query(
 				'UPDATE user_account SET password = "'+hashedPass+'" WHERE user_id = '+ req.body.userId + ';',
 				function(err,rows){
 			    if(err) throw err;
 					if(rows.length != 0){
-						res.end("Complete");
+						responce.push({data: null})
+						res.send(responce);
 					}
 				}
 			);
@@ -121,10 +135,11 @@ var passHash = require('../modules/app_modules_hash');
 		}
 
 		var passErr = function(auth){
-			var responce = {
+			responce.push({data:{
 				auth: auth
-			};
-			res.json(responce);
+				}
+			});
+			res.send(responce);
 		}
 
 			connection.query(

@@ -1,10 +1,11 @@
 var express  = require('../node_modules/express');
 var appValidate  = express.Router();                               // create our app w/ express
 var config = require('../config/config.js'); // get our config file
-var jwt = require('../node_modules/jsonwebtoken'); // used to create, sign, and verify tokens
+var jwt = require('../node_modules/jsonwebtoken-refresh'); // used to create, sign, and verify tokens
 
 appValidate.use(function(req, res, next){
 	var token = req.body.token || req.query.token || req.headers['x-access-token'];
+	var tokenRefresh = req.body.tokenRefresh || req.query.tokenRefresh || req.headers['x-access-tokenRefresh'];
 	//console.log(token);
 	if (token) {
 		// verifies secret and checks exp
@@ -15,6 +16,14 @@ appValidate.use(function(req, res, next){
 				    message: 'Token not valid.'
 				});
 			} else {
+				console.log(tokenRefresh);
+				if(tokenRefresh == true){
+					console.log("Yes");
+					var newToken = jwt.refresh(decoded, 3600, config.secret);
+					req.newToken = newToken;
+				}else{
+					req.newToken = '';
+				}
 				next();
 			}
 		});
