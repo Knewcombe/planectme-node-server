@@ -117,40 +117,125 @@ authApp.post('/email_check', function(req, res, next){
 	);
 });
 
+authApp.post('/questions_get', function(req, res, next){
+	console.log(req.body);
+	connection.query(
+		'SELECT user_id FROM user_account WHERE user_email = 'req.body.email,
+		function(err,rows){
+			if(err) throw err;
+			//If the db returns something to the user, a user is already using the given email.
+			if(rows.length != 0){
+				connection.query(
+					'SELECT question_id, question FROM user_questoins WHERE user_id = 'rows[0].user_id,
+					function(err,questions){
+						if(err) throw err;
+						//If the db returns something to the user, a user is already using the given email.
+						if(questions.length != 0){
+							res.send(questions);
+						}
+					}
+				);
+			}else{
+				res.send(false);
+			}
+		}
+	);
+});
+
 authApp.post('/questions_add', function(req, res, next){
 	console.log(req.body.user_id);
 	console.log(req.body.questions);
+
+	var firstQuestion = function(){
+			connection.query(
+				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.first.question+ "', '" +req.body.questions.first.answer+ "')",
+				function(err,rows){
+					if(err) throw err;
+					//If the db returns something to the user, a user is already using the given email.
+					if(rows.length != 0){
+						if(err) throw(err);
+						passHash.passwordHash(req.body.questions.second.answer, secondQestion);
+					}
+				}
+			);
+		}
+		var secondQestion = function(){
+			connection.query(
+				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.second.question+ "', '" +req.body.questions.second.answer+ "')",
+				function(err,rows){
+					if(err) throw err;
+					//If the db returns something to the user, a user is already using the given email.
+					if(rows.length != 0){
+						if(err) throw(err);
+						passHash.passwordHash(req.body.questions.third.answer, thirdQuestion);
+					}
+				}
+			);
+		}
+
+		//This is where this should end.
+		var thirdQuestion = function(hashedAnswer){
+			connection.query(
+				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.third.question+ "', '" +req.body.questions.third.answer+ "')",
+				function(err,rows){
+					if(err) throw err;
+					//If the db returns something to the user, a user is already using the given email.
+					if(rows.length != 0){
+						if(err) throw(err);
+						res.end();
+					}
+				}
+			);
+		}
+		passHash.passwordHash(req.body.questions.first.answer, firstQuestion);
+});
+
+authApp.post('/answer_questions', function(req, res, next){
+	console.log(req.body);
+	var error = function(){
+			res.send(false);
+	}
+
+	var final = function(value){
+		res.send(value);
+	}
+
+	var secondSuccess = function(value){
 		connection.query(
-			'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.first.question+ "', '" +req.body.questions.first.answer+ "')",
+			'SELECT answer, user_id FROM user_questions WHERE question_id = 'req.body.questions[2].id,
 			function(err,rows){
 				if(err) throw err;
-				//If the db returns something to the user, a user is already using the given email.
 				if(rows.length != 0){
 					if(err) throw(err);
-					connection.query(
-						'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.second.question+ "', '" +req.body.questions.second.answer+ "')",
-						function(err,rows){
-							if(err) throw err;
-							//If the db returns something to the user, a user is already using the given email.
-							if(rows.length != 0){
-								if(err) throw(err);
-								connection.query(
-									'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.third.question+ "', '" +req.body.questions.third.answer+ "')",
-									function(err,rows){
-										if(err) throw err;
-										//If the db returns something to the user, a user is already using the given email.
-										if(rows.length != 0){
-											if(err) throw(err);
-											res.end();
-										}
-									}
-								);
-							}
-						}
-					);
+					passHash.verify(req.body.questions[0].answer, rows[0].answer, rows[0].user_id, final, error);
 				}
 			}
 		);
+	}
+
+	var firstSuccess = function(value){
+		connection.query(
+			'SELECT answer, user_id FROM user_questions WHERE question_id = 'req.body.questions[1].id,
+			function(err,rows){
+				if(err) throw err;
+				if(rows.length != 0){
+					if(err) throw(err);
+					passHash.verify(req.body.questions[0].answer, rows[0].answer, rows[0].user_id, secondSuccess, error);
+				}
+			}
+		);
+	}
+	connection.query(
+		'SELECT answer, user_id FROM user_questions WHERE question_id = 'req.body.questions[0].id,
+		function(err,rows){
+			if(err) throw err;
+			if(rows.length != 0){
+				if(err) throw(err);
+				passHash.verify(req.body.questions[0].answer, rows[0].answer, rows[0].user_id, firstSuccess, error);
+			}
+		}
+	);
 });
+
 
 module.exports = authApp;
