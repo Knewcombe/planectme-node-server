@@ -104,7 +104,7 @@ authApp.post('/sign_up', function(req, res, next){
 
 authApp.post('/email_check', function(req, res, next){
 	connection.query(
-		'SELECT user_email FROM user_account WHERE user_email = '+"'"+req.body.email+ "'",
+		'SELECT user_email FROM user_account WHERE user_email = '+"'"+req.body.email+"'",
 		function(err,rows){
 			if(err) throw err;
 			//If the db returns something to the user, a user is already using the given email.
@@ -120,13 +120,13 @@ authApp.post('/email_check', function(req, res, next){
 authApp.post('/questions_get', function(req, res, next){
 	console.log(req.body);
 	connection.query(
-		'SELECT user_id FROM user_account WHERE user_email = 'req.body.email,
+		'SELECT user_id FROM user_account WHERE user_email = '+"'"+req.body.email+"'",
 		function(err,rows){
 			if(err) throw err;
 			//If the db returns something to the user, a user is already using the given email.
 			if(rows.length != 0){
 				connection.query(
-					'SELECT question_id, question FROM user_questoins WHERE user_id = 'rows[0].user_id,
+					'SELECT question_id, question FROM user_questions WHERE user_id = '+rows[0].user_id,
 					function(err,questions){
 						if(err) throw err;
 						//If the db returns something to the user, a user is already using the given email.
@@ -146,9 +146,9 @@ authApp.post('/questions_add', function(req, res, next){
 	console.log(req.body.user_id);
 	console.log(req.body.questions);
 
-	var firstQuestion = function(){
+	var firstQuestion = function(value){
 			connection.query(
-				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.first.question+ "', '" +req.body.questions.first.answer+ "')",
+				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.first.question+ "', '" +value+ "')",
 				function(err,rows){
 					if(err) throw err;
 					//If the db returns something to the user, a user is already using the given email.
@@ -159,9 +159,9 @@ authApp.post('/questions_add', function(req, res, next){
 				}
 			);
 		}
-		var secondQestion = function(){
+		var secondQestion = function(value){
 			connection.query(
-				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.second.question+ "', '" +req.body.questions.second.answer+ "')",
+				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.second.question+ "', '" +value+ "')",
 				function(err,rows){
 					if(err) throw err;
 					//If the db returns something to the user, a user is already using the given email.
@@ -174,9 +174,9 @@ authApp.post('/questions_add', function(req, res, next){
 		}
 
 		//This is where this should end.
-		var thirdQuestion = function(hashedAnswer){
+		var thirdQuestion = function(value){
 			connection.query(
-				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.third.question+ "', '" +req.body.questions.third.answer+ "')",
+				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.third.question+ "', '" +value+ "')",
 				function(err,rows){
 					if(err) throw err;
 					//If the db returns something to the user, a user is already using the given email.
@@ -192,50 +192,78 @@ authApp.post('/questions_add', function(req, res, next){
 
 authApp.post('/answer_questions', function(req, res, next){
 	console.log(req.body);
+
 	var error = function(){
-			res.send(false);
+		console.log("Wrong answer");
+		res.send(false);
 	}
 
 	var final = function(value){
-		res.send(value);
+		console.log("Thrid one right");
+		res.send({user_id: value});
 	}
 
 	var secondSuccess = function(value){
+		console.log("Second one right");
 		connection.query(
-			'SELECT answer, user_id FROM user_questions WHERE question_id = 'req.body.questions[2].id,
+			'SELECT answer, user_id FROM user_questions WHERE question_id = '+req.body.questions[2].id,
 			function(err,rows){
 				if(err) throw err;
 				if(rows.length != 0){
 					if(err) throw(err);
-					passHash.verify(req.body.questions[0].answer, rows[0].answer, rows[0].user_id, final, error);
+					console.log(req.body.questions[2].answer);
+					console.log(rows[0].answer);
+					passHash.verify(req.body.questions[2].answer, rows[0].answer, rows[0].user_id, final, error);
 				}
 			}
 		);
 	}
 
 	var firstSuccess = function(value){
+		console.log("First one right");
 		connection.query(
-			'SELECT answer, user_id FROM user_questions WHERE question_id = 'req.body.questions[1].id,
+			'SELECT answer, user_id FROM user_questions WHERE question_id = '+req.body.questions[1].id,
 			function(err,rows){
 				if(err) throw err;
 				if(rows.length != 0){
 					if(err) throw(err);
-					passHash.verify(req.body.questions[0].answer, rows[0].answer, rows[0].user_id, secondSuccess, error);
+					console.log(req.body.questions[1].answer);
+					console.log(rows[0].answer);
+					passHash.verify(req.body.questions[1].answer, rows[0].answer, rows[0].user_id, secondSuccess, error);
 				}
 			}
 		);
 	}
 	connection.query(
-		'SELECT answer, user_id FROM user_questions WHERE question_id = 'req.body.questions[0].id,
+		'SELECT answer, user_id FROM user_questions WHERE question_id = '+req.body.questions[0].id,
 		function(err,rows){
 			if(err) throw err;
 			if(rows.length != 0){
 				if(err) throw(err);
+				console.log(req.body.questions[0].answer);
+				console.log(rows[0].answer);
 				passHash.verify(req.body.questions[0].answer, rows[0].answer, rows[0].user_id, firstSuccess, error);
 			}
 		}
 	);
 });
 
+authApp.post('/forgot_change_password', function(req, res, next){
+	console.log(req.body.newPassword);
+	var passwordChange = function(value){
+		connection.query(
+			'UPDATE user_account SET password = '+"'"+value+"'"+' WHERE user_id = '+"'"+req.body.user_id+ "'",
+			function(err,rows){
+				if(err) throw err;
+				if(rows.length != 0){
+					res.send(true);
+				}else{
+					res.send(false);
+				}
+			}
+		);
+	}
+	passHash.passwordHash(req.body.newPassword, passwordChange);
+});
 
 module.exports = authApp;

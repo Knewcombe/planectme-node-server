@@ -109,9 +109,43 @@ profileApp.post('/upload', function(req, res){
 			);
 		};
 		responce.push({data: {error_code:0,err_desc:'done'}});
+		console.log(req.body)
 		res.send(responce);
 	};
 	imageUpload.saveImage(req, res, insertPath);
+});
+
+profileApp.post('/upload-base', function(req, res){
+	console.log("Calling profile Upload");
+	var responce = [{
+		token: req.newToken
+	}];
+
+	var error = function(){
+		responce.push({data: false})
+		res.send(responce);
+	}
+
+	var saveComplete = function(imagePath){
+		console.log("Length of paths "+imagePath.length);
+		for (var i = 0, len = imagePath.length; i < len; i++){
+			connection.query(
+				'INSERT INTO profile_pic (profile_id, image_location, default_picture) VALUES (' + "'" + req.body.profileId + "', '" + imagePath[i] + "', '0')",
+				function(err,rows){
+					if(err) throw err;
+					if(rows.length != 0){
+						console.log("Insert Complete "+i);
+					}
+				}
+			);
+			if(i >= imagePath.length - 1){
+				responce.push({data: true});
+				res.send(responce);
+			}
+		};
+	}
+
+	imageUpload.saveBase64(req.body.images, req.body.profileId, saveComplete, error);
 });
 
 profileApp.post('/download', function(req, res){
@@ -204,6 +238,88 @@ profileApp.post('/update_images', function(req, res){
 			}
 		}
 	);
+});
+
+profileApp.post('/update-base', function(req, res){
+
+	var imageArray = [];
+	var idArray = [];
+
+	var responce = [{
+		token: req.newToken,
+		data: false
+	}];
+
+	var error = function(){
+		res.send(responce);
+	}
+
+	var imageSuccess = function(images){
+		for (var i = 0, len = images.length; i < len; i++){
+			imageArray.push({
+				"image": new Buffer(images[i].file).toString('base64'),
+				"pictureId": images[i].pictureId
+			});
+		};
+		responce.push({
+			data: imageArray
+		})
+		res.send(responce);
+	}
+
+	var insertPath = function(imagesPath){
+		console.log("Update or insert");
+		async.forEachOf(imagesPath, function(value, key){
+			console.log("Trying update")
+			console.log(value);
+			connection.query(
+				'UPDATE profile_pic SET image_location = "'+value+'" WHERE picture_id = "'+ idArray[key]+'"',
+				function(err,rows){
+					if(err) throw err;
+					if(rows.affectedRows == 0){
+						console.log(rows);
+						console.log("Try Insert");
+						console.log(value);
+						connection.query(
+							'INSERT INTO profile_pic (profile_id, image_location, default_picture) VALUES ('+"'"+req.body.profileId+"', '"+value+"', '0')",
+							function(err,rows){
+								if(err) throw err;
+									console.log("Inseart Complete");
+									responce.data = true;
+								}
+							);
+						}else{
+							console.log("Updated");
+							console.log(rows);
+							responce.data = true;
+						}
+					}
+				);
+				if(key >= (imagesPath.length - 1)){
+					res.send(responce);
+				}
+			});
+		}
+	for (var e = 0, len = req.body.images.length; e < len; e++){
+		console.log(e);
+		imageArray.push(req.body.images[e].image);
+		idArray.push(req.body.images[e].pictureId);
+		connection.query(
+			'SELECT image_location FROM profile_pic WHERE picture_id = '+req.body.images[e].pictureId,
+			function(err,rows){
+				if(err) throw err;
+				if(rows.length != 0){
+					//Getting the last few infromatio peices for the user profile.
+					console.log("Removing");
+					imageUpload.removeImage(rows);
+				}
+			}
+		);
+		if(imageArray.length == req.body.images.length){
+			console.log("Filled")
+			imageUpload.saveBase64(imageArray, req.body.profileId, insertPath, error);
+		}
+	}
 });
 
 profileApp.post('/favourite_profile', function(req, res){
