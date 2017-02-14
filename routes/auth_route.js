@@ -72,7 +72,7 @@ authApp.post('/sign_up', function(req, res, next){
 			if(err) throw err;
 			//If the db returns something to the user, a user is already using the given email.
 			if(rows.length != 0){
-				res.send("false");
+				res.send(false);
 				res.end();
 			}else{
 				//Is the db returns nothing, the user does not exsist and the profile can be created.
@@ -82,7 +82,6 @@ authApp.post('/sign_up', function(req, res, next){
 		}
 	);
 }, function(req, res){
-	console.log(req.body);
 	var hashedSuccess = function(hashedPass){
 		connection.query(
 			'INSERT INTO user_profile (country, gender, allow_rating, visable_rating, hidden) VALUES (' + "'" + req.body.country + "', '" + req.body.gender + "', '" + req.body.options.rating + "', '" + req.body.options.visiableRate + "', '" + req.body.options.hidden +"')",
@@ -93,7 +92,8 @@ authApp.post('/sign_up', function(req, res, next){
 						+ "', '" + req.body.lastName + "', '" + req.body.dob + "')",
 						function(err, rows){
 							if(err) throw(err);
-							res.send("User has logged in");
+							res.send(true);
+							res.end();
 						}
 					);
 				}
@@ -103,6 +103,7 @@ authApp.post('/sign_up', function(req, res, next){
 });
 
 authApp.post('/email_check', function(req, res, next){
+	console.log(req.body.email);
 	connection.query(
 		'SELECT user_email FROM user_account WHERE user_email = '+"'"+req.body.email+"'",
 		function(err,rows){
