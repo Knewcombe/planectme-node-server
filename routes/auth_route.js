@@ -47,7 +47,6 @@ authApp.post('/authenticate', function(req, res) {
 	var passErr = function(message){
 		res.send(false);
 	}
-	console.log(req.body.email);
 	connection.query(
 		'SELECT * FROM user_account WHERE user_email = '+"'"+req.body.email + "'",
 		function(err,rows){
@@ -183,6 +182,7 @@ authApp.post('/questions_add', function(req, res, next){
 					//If the db returns something to the user, a user is already using the given email.
 					if(rows.length != 0){
 						if(err) throw(err);
+						res.send(true)
 						res.end();
 					}
 				}

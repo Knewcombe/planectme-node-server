@@ -116,6 +116,7 @@ profileApp.post('/upload', function(req, res){
 });
 
 profileApp.post('/upload-base', function(req, res){
+	console.log(req.body);
 	console.log("Calling profile Upload");
 	var responce = [{
 		token: req.newToken
