@@ -8,6 +8,7 @@ var tokenAuth = require('../modules/app_modules_token'); // used to create, sign
 var jwt = require('../node_modules/jsonwebtoken'); // used to create, sign, and verify tokens
 var config = require('../config/config.js');
 var passHash = require('../modules/app_modules_hash');
+var validation = require('../node_modules/validator');
 
 authApp.post('/authenticate', function(req, res) {
 	//Will need to work on this, mabey a join stuff?
@@ -48,7 +49,7 @@ authApp.post('/authenticate', function(req, res) {
 		res.send(false);
 	}
 	connection.query(
-		'SELECT * FROM user_account WHERE user_email = '+"'"+req.body.email + "'",
+		'SELECT * FROM user_account WHERE user_email = '+"'"+validation.escape(validation.trim(req.body.email)) + "'",
 		function(err,rows){
 			console.log(rows);
 			if(err) throw err;
@@ -66,7 +67,7 @@ authApp.post('/sign_up', function(req, res, next){
 	// console.log(user);
 	//Check if the user already exsists...
 	connection.query(
-		'SELECT user_email FROM user_account WHERE user_email = '+"'"+req.body.email+ "'",
+		'SELECT user_email FROM user_account WHERE user_email = '+"'"+validation.escape(validation.trim(req.body.email))+ "'",
 		function(err,rows){
 			if(err) throw err;
 			//If the db returns something to the user, a user is already using the given email.
@@ -83,12 +84,13 @@ authApp.post('/sign_up', function(req, res, next){
 }, function(req, res){
 	var hashedSuccess = function(hashedPass){
 		connection.query(
-			'INSERT INTO user_profile (country, gender, allow_rating, visable_rating, hidden) VALUES (' + "'" + req.body.country + "', '" + req.body.gender + "', '" + req.body.options.rating + "', '" + req.body.options.visiableRate + "', '" + req.body.options.hidden +"')",
+			'INSERT INTO user_profile (country, gender, allow_rating, visable_rating, hidden) VALUES (' + "'" + validation.escape(req.body.country) + "', '" + validation.escape(req.body.gender) + "', '" + req.body.options.rating +
+			"', '" + req.body.options.visiableRate + "', '" + req.body.options.hidden +"')",
 				function(err, rows){
 					if(err) throw err;
 					connection.query(
-						'INSERT INTO user_account (profile_id, user_email, password, first_name, last_name, date_of_birth) VALUES (' + "'" +rows.insertId  + "', '" +  req.body.email + "', '" + hashedPass + "', '" + req.body.firstName
-						+ "', '" + req.body.lastName + "', '" + req.body.dob + "')",
+						'INSERT INTO user_account (profile_id, user_email, password, first_name, last_name, date_of_birth) VALUES (' + "'" +rows.insertId  + "', '" +  validation.escape(validation.trim(req.body.email)) + "', '" + hashedPass + "', '" + validation.escape(validation.trim(req.body.firstName))
+						+ "', '" + validation.escape(validation.trim(req.body.lastName)) + "', '" + validation.escape(req.body.dob) + "')",
 						function(err, rows){
 							if(err) throw(err);
 							res.send(true);
@@ -104,7 +106,7 @@ authApp.post('/sign_up', function(req, res, next){
 authApp.post('/email_check', function(req, res, next){
 	console.log(req.body.email);
 	connection.query(
-		'SELECT user_email FROM user_account WHERE user_email = '+"'"+req.body.email+"'",
+		'SELECT user_email FROM user_account WHERE user_email = '+"'"+validation.escape(validation.trim(req.body.email))+"'",
 		function(err,rows){
 			if(err) throw err;
 			//If the db returns something to the user, a user is already using the given email.
@@ -120,7 +122,7 @@ authApp.post('/email_check', function(req, res, next){
 authApp.post('/questions_get', function(req, res, next){
 	console.log(req.body);
 	connection.query(
-		'SELECT user_id FROM user_account WHERE user_email = '+"'"+req.body.email+"'",
+		'SELECT user_id FROM user_account WHERE user_email = '+"'"+validation.escape(validation.trim(req.body.email))+"'",
 		function(err,rows){
 			if(err) throw err;
 			//If the db returns something to the user, a user is already using the given email.
@@ -148,26 +150,26 @@ authApp.post('/questions_add', function(req, res, next){
 
 	var firstQuestion = function(value){
 			connection.query(
-				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.first.question+ "', '" +value+ "')",
+				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +validation.escape(req.body.questions.first.question)+ "', '" +value+ "')",
 				function(err,rows){
 					if(err) throw err;
 					//If the db returns something to the user, a user is already using the given email.
 					if(rows.length != 0){
 						if(err) throw(err);
-						passHash.passwordHash(req.body.questions.second.answer, secondQestion);
+						passHash.passwordHash(validation.trim(req.body.questions.second.answer.toLowerCase()), secondQestion);
 					}
 				}
 			);
 		}
 		var secondQestion = function(value){
 			connection.query(
-				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.second.question+ "', '" +value+ "')",
+				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id+ "', '" +validation.escape(req.body.questions.second.question)+ "', '" +value+ "')",
 				function(err,rows){
 					if(err) throw err;
 					//If the db returns something to the user, a user is already using the given email.
 					if(rows.length != 0){
 						if(err) throw(err);
-						passHash.passwordHash(req.body.questions.third.answer, thirdQuestion);
+						passHash.passwordHash(validation.trim(req.body.questions.third.answer.toLowerCase()), thirdQuestion);
 					}
 				}
 			);
@@ -176,7 +178,7 @@ authApp.post('/questions_add', function(req, res, next){
 		//This is where this should end.
 		var thirdQuestion = function(value){
 			connection.query(
-				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +req.body.questions.third.question+ "', '" +value+ "')",
+				'INSERT INTO user_questions (user_id, question, answer) VALUES (' + "'" + req.body.user_id + "', '" +validation.escape(req.body.questions.third.question)+ "', '" +value+ "')",
 				function(err,rows){
 					if(err) throw err;
 					//If the db returns something to the user, a user is already using the given email.
@@ -188,19 +190,16 @@ authApp.post('/questions_add', function(req, res, next){
 				}
 			);
 		}
-		passHash.passwordHash(req.body.questions.first.answer, firstQuestion);
+		passHash.passwordHash(validation.trim(req.body.questions.first.answer.toLowerCase()), firstQuestion);
 });
 
 authApp.post('/answer_questions', function(req, res, next){
-	console.log(req.body);
 
 	var error = function(){
-		console.log("Wrong answer");
 		res.send(false);
 	}
 
 	var final = function(value){
-		console.log("Thrid one right");
 		res.send({user_id: value});
 	}
 
@@ -212,9 +211,7 @@ authApp.post('/answer_questions', function(req, res, next){
 				if(err) throw err;
 				if(rows.length != 0){
 					if(err) throw(err);
-					console.log(req.body.questions[2].answer);
-					console.log(rows[0].answer);
-					passHash.verify(req.body.questions[2].answer, rows[0].answer, rows[0].user_id, final, error);
+					passHash.verify(validation.escape(validation.trim(req.body.questions[2].answer.toLowerCase())), rows[0].answer.toLowerCase(), rows[0].user_id, final, error);
 				}
 			}
 		);
@@ -228,9 +225,7 @@ authApp.post('/answer_questions', function(req, res, next){
 				if(err) throw err;
 				if(rows.length != 0){
 					if(err) throw(err);
-					console.log(req.body.questions[1].answer);
-					console.log(rows[0].answer);
-					passHash.verify(req.body.questions[1].answer, rows[0].answer, rows[0].user_id, secondSuccess, error);
+					passHash.verify(validation.escape(validation.trim(req.body.questions[1].answer.toLowerCase())), rows[0].answer.toLowerCase(), rows[0].user_id, secondSuccess, error);
 				}
 			}
 		);
@@ -240,17 +235,13 @@ authApp.post('/answer_questions', function(req, res, next){
 		function(err,rows){
 			if(err) throw err;
 			if(rows.length != 0){
-				if(err) throw(err);
-				console.log(req.body.questions[0].answer);
-				console.log(rows[0].answer);
-				passHash.verify(req.body.questions[0].answer, rows[0].answer, rows[0].user_id, firstSuccess, error);
+				passHash.verify(validation.escape(validation.trim(req.body.questions[0].answer.toLowerCase())), rows[0].answer.toLowerCase(), rows[0].user_id, firstSuccess, error);
 			}
 		}
 	);
 });
 
 authApp.post('/forgot_change_password', function(req, res, next){
-	console.log(req.body.newPassword);
 	var passwordChange = function(value){
 		connection.query(
 			'UPDATE user_account SET password = '+"'"+value+"'"+' WHERE user_id = '+"'"+req.body.user_id+ "'",
