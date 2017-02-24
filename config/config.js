@@ -4,7 +4,7 @@ module.exports = {
 	'host' : 'localhost',
 	'port' : '8889',
 	'user' : 'root',
-	'password': 'root',
+	'password': '',
 	'database' : 'planect_me_app'
 
 };

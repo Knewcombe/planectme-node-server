@@ -396,9 +396,9 @@ profileApp.post('/remove_image', function(req, res){
 });
 
 profileApp.post('/favourite_profile', function(req, res){
-	var responce = [{
+	var responce = {
 		token: req.newToken
-	}];
+	};
 	connection.query(
 		'INSERT INTO favourite_profile (profile_id, fav_profile_id) VALUES ('+"'"+req.body.profileId+"', '"+req.body.favProfile+"')",
 		function(err,rows){
@@ -472,7 +472,7 @@ profileApp.post('/rate_profile', function(req, res){
 			if(rows.length != 0){
 				//If there is any amount of rows, they need to be updated.
 				connection.query(
-					'UPDATE profile_rating SET rate_amount = "'+validation.escape(req.body.value)+'" WHERE profile_id = '+req.body.profileId + " AND rate_profile_id = "+ req.body.rateProfileId,
+					'UPDATE profile_rating SET rate_amount = "'+req.body.value+'" WHERE profile_id = '+req.body.profileId + " AND rate_profile_id = "+ req.body.rateProfileId,
 					function(err,rows){
 						if(err) throw err;
 						if(rows.length != 0){
@@ -484,7 +484,7 @@ profileApp.post('/rate_profile', function(req, res){
 			}else{
 				//If there is no rows, inseart the rating.
 				connection.query(
-					'INSERT INTO profile_rating (profile_id, rate_profile_id, rate_amount) VALUES ('+"'"+req.body.profileId+"', '"+req.body.rateProfileId+"','"+validation.escape(req.body.value)+"')",
+					'INSERT INTO profile_rating (profile_id, rate_profile_id, rate_amount) VALUES ('+"'"+req.body.profileId+"', '"+req.body.rateProfileId+"','"+req.body.value+"')",
 					function(err,rows){
 						if(err) throw err;
 						res.send(responce);
