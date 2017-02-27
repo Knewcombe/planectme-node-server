@@ -569,7 +569,7 @@ profileApp.post('/get_profile_data', function(req, res){
 			if(err) throw err;
 			console.log(rows);
 			if(rows.length != 0){
-				if(rows[0].country === validation.escape(req.body.requestCountry)){
+				if(rows[0].country === req.body.requestCountry){
 					if(rows[0].hidden){
 						responce.data = rows;
 					}else{
