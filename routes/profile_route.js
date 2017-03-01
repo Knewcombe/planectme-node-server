@@ -12,7 +12,6 @@ var imageUpload = require('../modules/app_modules_images.js');
 var validation = require('../node_modules/validator');
 
 profileApp.post('/getProfiles', function(req, res){
-	console.log(req.body)
 	var profileids = req.body.profileId;
 	var profiles = [];
 
@@ -45,7 +44,6 @@ profileApp.post('/getProfiles', function(req, res){
 			query +=  ') ORDER BY RAND()';
 		}
 	}
-	console.log(query);
 	connection.query(
 		query,
 		function(err,rows){
@@ -110,7 +108,6 @@ profileApp.post('/get_users_info', function(req, res, next){
 		}
 	};
 
-	console.log(responce.data.user);
 	connection.query(
 		'SELECT * FROM user_account WHERE user_id ='+ req.body.userId,
 		function(err, rows){
@@ -149,14 +146,12 @@ profileApp.post('/upload', function(req, res){
 			);
 		};
 		responce.data = {error_code:0,err_desc:'done'};
-		console.log(req.body)
 		res.send(responce);
 	};
 	imageUpload.saveImage(req, res, insertPath);
 });
 
 profileApp.post('/upload-base', function(req, res){
-	console.log(req.body);
 	console.log("Calling profile Upload");
 	var responce = {
 		token: req.newToken,
@@ -310,7 +305,6 @@ profileApp.post('/update-base', function(req, res){
 		console.log("Update or insert");
 		async.forEachOf(imagesPath, function(value, key){
 			console.log("Trying update")
-			console.log(value);
 			connection.query(
 				'UPDATE profile_pic SET image_location = "'+value+'" WHERE picture_id = "'+ idArray[key]+'"',
 				function(err,rows){
@@ -319,9 +313,7 @@ profileApp.post('/update-base', function(req, res){
 						res.send(responce);
 					}
 					if(rows.affectedRows == 0){
-						console.log(rows);
 						console.log("Try Insert");
-						console.log(value);
 						connection.query(
 							'INSERT INTO profile_pic (profile_id, image_location, default_picture) VALUES ('+"'"+req.body.profileId+"', '"+value+"', '0')",
 							function(err,rows){
@@ -332,7 +324,6 @@ profileApp.post('/update-base', function(req, res){
 							);
 						}else{
 							console.log("Updated");
-							console.log(rows);
 							responce.data = true;
 						}
 					}
@@ -340,7 +331,6 @@ profileApp.post('/update-base', function(req, res){
 			});
 		}
 	for (var e = 0, len = req.body.images.length; e < len; e++){
-		console.log(e);
 		imageArray.push(req.body.images[e].image);
 		idArray.push(req.body.images[e].pictureId);
 		connection.query(
@@ -375,7 +365,6 @@ profileApp.post('/remove_image', function(req, res){
 				if(rows.length != 0){
 					console.log("Removing");
 					imageUpload.removeImage(rows);
-					console.log(value)
 					connection.query(
 						'DELETE FROM `planect_me_app`.`profile_pic` WHERE `profile_pic`.`picture_id` ='+value.pictureId,
 						function(err, rows){
@@ -436,7 +425,6 @@ profileApp.post('/favourite_find_all', function(req, res){
 		'SELECT * FROM favourite_profile WHERE profile_id = '+req.body.profileId,
 		function(err,rows){
 			if(err) throw err;
-			console.log(rows);
 			if(rows.length != 0){
 				responce.data = rows;
 			}else{
@@ -562,12 +550,10 @@ profileApp.post('/get_profile_data', function(req, res){
 		token: req.newToken,
 		data: {}
 	};
-	console.log(req.body.profileId)
 	connection.query(
 		'SELECT * FROM user_profile WHERE profile_id = '+req.body.profileId,
 		function(err,rows){
 			if(err) throw err;
-			console.log(rows);
 			if(rows.length != 0){
 				if(rows[0].country === req.body.requestCountry){
 					if(rows[0].hidden){

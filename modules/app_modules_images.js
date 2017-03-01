@@ -26,7 +26,6 @@ imageController.saveImage = function(req, res, callback){
 					res.json({error_code:1,err_desc:err});
 					return;
 				}else{
-					console.log(req.files)
 					callback(req.files);
 				}
 			})
@@ -36,7 +35,6 @@ imageController.saveImage = function(req, res, callback){
 			cb(null, 'uploads/test'+req.query.profileId);
 		},
 		filename: function (req, file, cb) {
-			console.log(file);
 			var datetimestamp = Date.now();
 			cb(null, file.fieldname + datetimestamp + '.' + file.originalname.split('.')[file.originalname.split('.').length -1]);
 		}
@@ -70,13 +68,25 @@ imageController.saveBase64 = function(images, profileId, imageSaved, error){
 		// console.log("Before Loop"+ i);
 		//dir is either created or alreadt exsists
 		async.forEachOf(images, function(value, key){
-			console.log("Index "+key);
-			console.log("Image Langth "+(images.length - 1));
-			var base64Data = value.replace('data:image/jpeg;base64,', "");
+			var imageData = {
+			  "mimeType" : '',
+			  "src" : '',
+				"extention" : ''
+			}
+			imageData.mimeType = value.split(';')[0];
+			imageData.src = value.split(',')[1];
+			if(imageData.mimeType == 'data:image/png'){
+				console.log('png');
+				imageData.extention = '.png';
+			}else if(imageData.mimeType == 'data:image/jpeg'){
+				console.log('jpg');
+				imageData.extention = '.jpg';
+			}
+			// var base64Data = value.replace('data:image/jpeg;base64,', "");
 			// var datetimestamp = new Date();
-			var fileName = Date.now() + profileId +"-"+ key +".jpg";
+			var fileName = Date.now() + profileId +"-"+ key + imageData.extention;
 			imagePaths.push(path+fileName);
-			fs.writeFile(path+fileName, base64Data, 'base64', function(err) {
+			fs.writeFile(path+fileName, imageData.src, 'base64', function(err) {
 				if(err){
 					error();
 				}else{

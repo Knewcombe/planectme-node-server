@@ -51,7 +51,6 @@ authApp.post('/authenticate', function(req, res) {
 	connection.query(
 		'SELECT * FROM user_account WHERE user_email = '+"'"+validation.escape(validation.trim(req.body.email)) + "'",
 		function(err,rows){
-			console.log(rows);
 			if(err) throw err;
 			if(rows.length != 0){
 				passHash.verify(req.body.password, rows[0].password, rows[0].user_id, passSuccess, passErr);
@@ -104,7 +103,6 @@ authApp.post('/sign_up', function(req, res, next){
 });
 
 authApp.post('/email_check', function(req, res, next){
-	console.log(req.body.email);
 	connection.query(
 		'SELECT user_email FROM user_account WHERE user_email = '+"'"+validation.escape(validation.trim(req.body.email))+"'",
 		function(err,rows){
@@ -120,7 +118,6 @@ authApp.post('/email_check', function(req, res, next){
 });
 
 authApp.post('/questions_get', function(req, res, next){
-	console.log(req.body);
 	connection.query(
 		'SELECT user_id FROM user_account WHERE user_email = '+"'"+validation.escape(validation.trim(req.body.email))+"'",
 		function(err,rows){
@@ -145,8 +142,6 @@ authApp.post('/questions_get', function(req, res, next){
 });
 
 authApp.post('/questions_add', function(req, res, next){
-	console.log(req.body.user_id);
-	console.log(req.body.questions);
 
 	var firstQuestion = function(value){
 			connection.query(

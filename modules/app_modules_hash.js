@@ -8,7 +8,6 @@ passHash.passwordHash = function(password, success){
 }
 
 passHash.verify = function(password, hashedPass, id, success, error){
-	console.log(password);
 	if(hashing.verify(password, hashedPass)){
 		//Return the id to find the user profile.
 		success(id);

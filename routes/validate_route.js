@@ -6,7 +6,6 @@ var jwt = require('../node_modules/jsonwebtoken-refresh'); // used to create, si
 appValidate.use(function(req, res, next){
 	var token = req.body.token || req.query.token || req.headers['x-access-token'];
 	var tokenRefresh = req.body.tokenRefresh || req.query.tokenRefresh || req.headers['x-access-tokenRefresh'];
-	//console.log(token);
 	if (token) {
 		// verifies secret and checks exp
 		jwt.verify(token, config.secret, function(err, decoded) {
@@ -16,7 +15,6 @@ appValidate.use(function(req, res, next){
 				    message: 'Token not valid.'
 				});
 			} else {
-				console.log(tokenRefresh);
 				if(tokenRefresh == true){
 					console.log("Yes");
 					var newToken = jwt.refresh(decoded, 3600, config.secret);
