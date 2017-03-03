@@ -41,7 +41,7 @@ profileApp.post('/getProfiles', function(req, res){
 		if(i != (profileids.length - 1)){
 			query += ', ';
 		}else{
-			query +=  ') ORDER BY RAND() LIMIT 10';
+			query +=  ') ORDER BY RAND()';
 		}
 	}
 	connection.query(
