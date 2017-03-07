@@ -46,10 +46,18 @@ imageController.saveImage = function(req, res, callback){
 imageController.getImage = function(imagePaths, imageSuccess){
 	var images = [];
 	for (var i = 0; i < imagePaths.length; i++){
-		images.push({
-			"file":fs.readFileSync(imagePaths[i].image_location),
-			"pictureId": imagePaths[i].picture_id
-		});
+		try{
+			images.push({
+				"file":fs.readFileSync(imagePaths[i].image_location),
+				"pictureId": imagePaths[i].picture_id
+			});
+		}catch (err) {
+			if (err.code === 'ENOENT') {
+			  console.log('File not found!');
+			} else {
+			  throw err;
+			}
+		}
 	}
 	imageSuccess(images);
 }
