@@ -79,7 +79,7 @@ profileApp.post('/getProfiles', function(req, res){
 									responce.data.profile = profiles;
 									res.send(responce);
 								}
-							}else{
+							}else if(key == progress){
 								console.log("Send 2");
 								responce.data.profile = null;
 								res.send(responce);

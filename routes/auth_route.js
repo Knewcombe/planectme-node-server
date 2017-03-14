@@ -81,9 +81,25 @@ authApp.post('/sign_up', function(req, res, next){
 		}
 	);
 }, function(req, res){
+	var gotUID = false;
+	var tempId = 0;
+	do{
+		console.log('test')
+		tempId = Math.floor(100000000 + Math.random() * 900000000);
+		connection.query(
+			'SELECT profile_id FROM user_profile WHERE profile_id ='+ tempId,
+				function(err, rows){
+					if(err) throw err;
+					if(!rows.length){
+						gotUID = true;
+					}
+				}
+		);
+	}
+	while(gotUID);
 	var hashedSuccess = function(hashedPass){
 		connection.query(
-			'INSERT INTO user_profile (country, gender, allow_rating, visable_rating, hidden) VALUES (' + "'" + validation.escape(req.body.country) + "', '" + validation.escape(req.body.gender) + "', '" + req.body.options.rating +
+			'INSERT INTO user_profile (profile_id, country, gender, allow_rating, visable_rating, hidden) VALUES ('+tempId+ ", '" + validation.escape(req.body.country) + "', '" + validation.escape(req.body.gender) + "', '" + req.body.options.rating +
 			"', '" + req.body.options.visiableRate + "', '" + req.body.options.hidden +"')",
 				function(err, rows){
 					if(err) throw err;
