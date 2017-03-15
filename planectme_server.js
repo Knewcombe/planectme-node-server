@@ -64,10 +64,10 @@
 		app.use('/api/profiles', profile_route);
 
 		// listen (start app with node server) ======================================
-		https.createServer({
-			ca: ca,
-			key: key,
-			cert: cert
-		}, app).listen(port);
-		// app.listen(port);
+		// https.createServer({
+		// 	ca: ca,
+		// 	key: key,
+		// 	cert: cert
+		// }, app).listen(port);
+		app.listen(port);
 		console.log("App listening on port" + port);
