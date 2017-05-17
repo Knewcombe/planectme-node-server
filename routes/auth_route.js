@@ -9,6 +9,7 @@ var jwt = require('../node_modules/jsonwebtoken'); // used to create, sign, and 
 var config = require('../config/config.js');
 var passHash = require('../modules/app_modules_hash');
 var validation = require('../node_modules/validator');
+var iap = require('../node_modules/in-app-purchase');
 
 authApp.post('/authenticate', function(req, res) {
 	//Will need to work on this, mabey a join stuff?
@@ -268,5 +269,117 @@ authApp.post('/forgot_change_password', function(req, res, next){
 	}
 	passHash.passwordHash(req.body.newPassword, passwordChange);
 });
+
+authApp.post('/validate_purchase', function(req, res, next){
+	console.log('Validating purchase');
+	console.log(req.body);
+	// var profileId = req.body.profileId;
+	// var transactionId = req.body.transactionId;
+	// var receipt = req.body.receipt;
+	iap.config({
+		applePassword: config.appleSec
+	});
+	iap.setup(function (error) {
+    if (error) {
+				console.log(error)
+				console.error('something went wrong...');
+				res.end(false);
+    }
+    // iap is ready
+    iap.validate(iap.APPLE, req.body.receipt, function (err, appleRes) {
+        if (err) {
+						console.error(err);
+						res.end(false);
+        }
+        if (iap.isValidated(appleRes)) {
+            // yay good!
+						// var purchaseDataList = iap.getPurchaseData(appleRes);
+						console.log('------Res------')
+						console.log(appleRes.latest_receipt)
+						console.log(appleRes.latest_receipt_info[0].transaction_id)
+						connection.query(
+							'INSERT INTO profile_purchases (profile_id, transaction_id, receipt) VALUES('+req.body.profileId+','+req.body.transactionId+',"'+req.body.receipt+'")',
+							function(err,rows){
+								if(err) throw err;
+								if(rows.length != 0){
+									res.send(true);
+								}else{
+									res.send(false);
+								}
+							}
+						);
+        }
+    });
+	});
+});
+
+authApp.post('/check_purchase', function(req, res, next){
+	console.log('Check purchase');
+	//Need to get the purchase from data base
+	console.log(req.body)
+	connection.query(
+		'SELECT receipt, transaction_id FROM profile_purchases WHERE profile_id = '+req.body.profileId,
+		function(err,rows){
+			if(err) throw err;
+			if(rows.length != 0){
+				iap.config({
+					applePassword: config.appleSec
+				});
+				iap.setup(function (error) {
+			    if (error) {
+							console.log(error)
+							console.error('something went wrong...');
+							res.send("false");
+			    }
+			    // iap is ready
+			    iap.validate(iap.APPLE, rows[0].receipt, function (err, appleRes) {
+			        if (err) {
+									console.error(err);
+									res.send("false");
+			        }
+			        if (iap.isValidated(appleRes)) {
+			            // yay good!
+									// var purchaseDataList = iap.getPurchaseData(appleRes);
+									var purchaseDataList = iap.getPurchaseData(appleRes);
+									var responce = '';
+									console.log('Checking the purchases')
+									// console.log(purchaseDataList);
+			            for (var i = 0, len = purchaseDataList.length; i < len; i++) {
+										console.log(purchaseDataList[i].transactionId);
+										if(rows[0].transaction_id == purchaseDataList[i].transactionId){
+											// console.log(rows[0].transaction_id);
+											// console.log(purchaseDataList[i].transactionId);
+											if (iap.isExpired(purchaseDataList[i])) {
+													// this item has been expired...
+													console.log('Expired');
+													connection.query(
+														'DELETE FROM profile_purchases WHERE profile_id = '+req.body.profileId,
+														function(err,rows){
+															if(err) throw err;
+															// res.write("false");
+														}
+													);
+													responce = 'false'
+											}else{
+												console.log('Good to go ')
+												responce = 'true'
+											}
+										}
+										if(i+1 == purchaseDataList.length){
+											console.log(responce);
+											console.log('console call')
+											res.write(responce);
+											res.end();
+										}
+			            }
+			        }
+			    });
+				});
+			}else{
+				res.send("false");
+			}
+		}
+	);
+})
 
 module.exports = authApp;

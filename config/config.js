@@ -5,7 +5,8 @@ module.exports = {
 	'port' : '3306',
 	'user' : 'planectme',
 	'password' : '94_Watts',
-	'database' : 'planect_me_app'
+	'database' : 'planect_me_app',
+	'appleSec': 'fa5206ac268048908ac4f20df5607cbe'
 
 };
 
