@@ -19,8 +19,9 @@
 
 		var port = process.env.PORT || 8080; // used to create, sign, and verify tokens
 		app.set('superSecret', config.secret);
+		app.set('view engine', 'ejs');
 
-    app.use(express.static(__dirname + '/public'));                 // set the static files location /public/img will be /img for users
+    app.use(express.static(__dirname + 'public'));                 // set the static files location /public/img will be /img for users
     app.use(morgan('dev'));                                         // log every request to the console
     app.use(bodyParser.urlencoded({'extended':'true'}, {limit: '50mb'}));            // parse application/x-www-form-urlencoded
     app.use(bodyParser.json({limit: '50mb'}));                                     // parse application/json
@@ -64,10 +65,10 @@
 		app.use('/api/profiles', profile_route);
 
 		// listen (start app with node server) ======================================
-		https.createServer({
-			ca: ca,
-			key: key,
-			cert: cert
-		}, app).listen(port);
-		// app.listen(port);
+		// https.createServer({
+		// 	ca: ca,
+		// 	key: key,
+		// 	cert: cert
+		// }, app).listen(port);
+		app.listen(port);
 		console.log("App listening on port" + port);

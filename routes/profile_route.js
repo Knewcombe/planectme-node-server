@@ -260,6 +260,17 @@ profileApp.post('/update_images', function(req, res){
 		}
 
 	var removeImageSuccess = function(){
+		connection.query(
+			'DELETE FROM profile_pic WHERE picture_id = "'+ req.query.pictureId+'"',
+			function(err,rows){
+				if(err) throw err;
+				if(rows.affectedRows == 0){
+
+					}else{
+						res.send(responce);
+					}
+				}
+			);
 		imageUpload.saveImage(req, res, insertPath);
 	}
 	connection.query(
